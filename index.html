@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cognido - Task Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles/main.css">
+</head>
+<body>
+<div class="shell">
+
+  <!-- ── Sidebar ── -->
+  <div class="sidebar">
+    <div class="logo">
+      <img class="logo-img" src="./assets/logo.png" alt="Cognido logo">
+    </div>
+
+    <div class="nav-sec">Views</div>
+    <button class="nav-item active" id="nav-all"        onclick="setView('all')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="1.5" width="5" height="5" rx="1"/><rect x="9.5" y="1.5" width="5" height="5" rx="1"/><rect x="1.5" y="9.5" width="5" height="5" rx="1"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/></svg>
+      All tasks <span class="nav-count" id="nc-all">0</span>
+    </button>
+    <button class="nav-item" id="nav-inprogress"        onclick="setView('inprogress')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+      In progress <span class="nav-count" id="nc-inp">0</span>
+    </button>
+    <button class="nav-item" id="nav-review"            onclick="setView('review')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M5.5 8h5M8 5.5v5"/></svg>
+      In review <span class="nav-count" id="nc-rev">0</span>
+    </button>
+    <button class="nav-item" id="nav-blocked"           onclick="setView('blocked')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><line x1="5" y1="8" x2="11" y2="8"/></svg>
+      Blocked <span class="nav-count" id="nc-blk">0</span>
+    </button>
+    <button class="nav-item" id="nav-done"              onclick="setView('done')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><polyline points="5.5,8 7.5,10 10.5,6"/></svg>
+      Done <span class="nav-count" id="nc-done">0</span>
+    </button>
+
+    <div class="nav-sec">Categories</div>
+    <div class="cats-scroll" id="cat-nav"></div>
+
+    <div class="sidebar-foot">
+      <div class="sync-bar setup" id="sync-bar">
+        <span class="sync-dot pulse"></span>
+        <span id="sync-text">Not connected</span>
+      </div>
+      <button class="nav-item" onclick="openCatModal()" style="margin:0 0 10px;width:100%">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><line x1="8" y1="5.5" x2="8" y2="10.5"/><line x1="5.5" y1="8" x2="10.5" y2="8"/></svg>
+        Manage categories
+      </button>
+      <div class="project-card">
+        <div class="project-card-title">PROCESS_PREADVICE</div>
+        <div class="project-card-meta">Code rel · 17-Apr-26<br>Buffer · 3 days · 08-Apr</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main ── -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="view-title" id="view-title">All tasks</div>
+        <div class="view-sub">Auto job · Future dated pre-advice transactions</div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-ghost" onclick="openCatModal()">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="4" cy="4" r="2"/><circle cx="10" cy="4" r="2"/><circle cx="4" cy="10" r="2"/><circle cx="10" cy="10" r="2"/></svg>
+          Categories
+        </button>
+        <button class="btn btn-ghost" id="sync-btn" onclick="syncNow()">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8A5 5 0 1 1 9 3.27"/><polyline points="9,1 9,4 12,4"/></svg>
+          Sync
+        </button>
+        <button class="btn btn-primary" onclick="openDrawer(null)" id="add-btn">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
+          Add task
+        </button>
+      </div>
+    </div>
+
+    <!-- Login gate shown before authentication -->
+    <div class="config-banner" id="config-banner">
+      <h2>Connect your Cognido board</h2>
+      <p>Enter the Cognido username and password to unlock your task hub. We will remember this device for next time.</p>
+      <div class="login-row">
+        <input class="login-input" id="login-username" type="text" placeholder="Username" autocomplete="username">
+        <input class="login-input" id="login-password" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter'){connectSheet();}">
+        <button class="btn btn-primary" onclick="connectSheet()">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 7h12M8 3l4 4-4 4"/></svg>
+          Unlock Cognido
+        </button>
+      </div>
+    </div>
+        <!-- App content (hidden until connected) -->
+    <div id="app-content" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+      <div class="stats-row">
+        <div class="stat"><div class="stat-num blue" id="s-total">0</div><div class="stat-lbl">Total tasks</div><div class="stat-bar"><div class="stat-bar-fill" style="background:var(--blue);width:100%" id="sb-total"></div></div></div>
+        <div class="stat"><div class="stat-num green" id="s-done">0</div><div class="stat-lbl">Done</div><div class="stat-bar"><div class="stat-bar-fill" style="background:var(--green);width:0%" id="sb-done"></div></div></div>
+        <div class="stat"><div class="stat-num amber" id="s-inp">0</div><div class="stat-lbl">In progress</div><div class="stat-bar"><div class="stat-bar-fill" style="background:var(--amber);width:0%" id="sb-inp"></div></div></div>
+        <div class="stat"><div class="stat-num red" id="s-blk">0</div><div class="stat-lbl">Blocked</div><div class="stat-bar"><div class="stat-bar-fill" style="background:var(--red);width:0%" id="sb-blk"></div></div></div>
+      </div>
+
+      <div class="prog-strip">
+        <div class="prog-row"><span class="prog-label">Overall progress</span><span class="prog-pct" id="prog-pct">0%</span></div>
+        <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><line x1="9.5" y1="9.5" x2="13" y2="13"/></svg>
+          <input class="search-inp" id="search" type="text" placeholder="Search tasks, remarks, owners..." oninput="render()">
+        </div>
+        <select class="filter-sel" id="f-cat" onchange="render()"><option value="">All categories</option></select>
+        <select class="filter-sel" id="f-owner" onchange="render()">
+          <option value="">All owners</option>
+          <option>Abhishek</option>
+          <option>Hemanth</option>
+          <option>Both</option>
+        </select>
+        <select class="filter-sel" id="f-pri" onchange="render()">
+          <option value="">All priorities</option>
+          <option value="high">High</option>
+          <option value="med">Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+
+      <div class="table-container">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="col-id">#</th>
+                <th class="col-task">Task</th>
+                <th class="col-cat">Category</th>
+                <th class="col-own">Owner</th>
+                <th class="col-eff">Effort</th>
+                <th class="col-dt">Timeline</th>
+                <th class="col-st">Status</th>
+                <th class="col-pri">Pri</th>
+                <th class="col-ac"></th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Task Drawer -->
+<div class="overlay" id="task-overlay" onclick="if(event.target===this)closeDrawer()">
+  <div class="drawer" onclick="event.stopPropagation()">
+    <div class="drawer-head">
+      <span class="drawer-title" id="drawer-title">Add task</span>
+      <button class="close-btn" onclick="closeDrawer()"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/></svg></button>
+    </div>
+    <div class="drawer-body">
+      <div class="ff"><label>Task description *</label><textarea id="f-task" placeholder="Describe the work item clearly..."></textarea></div>
+      <div class="ff"><label>Remarks / notes</label><input id="f-remarks" type="text" placeholder="e.g. Job name -PROCESS_PREADVICE"></div>
+      <div class="ff-row">
+        <div class="ff"><label>Category</label><select id="f-cat-d"></select></div>
+        <div class="ff"><label>Owner</label>
+          <select id="f-owner-d">
+            <option value="Both">Both</option>
+            <option value="Abhishek">Abhishek</option>
+            <option value="Hemanth">Hemanth</option>
+          </select>
+        </div>
+      </div>
+      <div class="ff-row">
+        <div class="ff"><label>Effort</label><input id="f-effort" type="text" placeholder="e.g. 1 day"></div>
+        <div class="ff"><label>Timeline</label><input id="f-date" type="text" placeholder="e.g. 27-Mar"></div>
+      </div>
+      <div class="ff-row">
+        <div class="ff"><label>Status</label>
+          <select id="f-status-d">
+            <option value="todo">To do</option>
+            <option value="inprogress">In progress</option>
+            <option value="review">In review</option>
+            <option value="done">Done</option>
+            <option value="blocked">Blocked</option>
+          </select>
+        </div>
+        <div class="ff"><label>Priority</label>
+          <select id="f-pri-d">
+            <option value="med">Medium</option>
+            <option value="high">High</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="drawer-foot">
+      <button class="btn btn-ghost" onclick="closeDrawer()">Cancel</button>
+      <button class="btn btn-primary" id="save-btn" onclick="saveTask()">Save task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal-overlay" id="cat-overlay" onclick="if(event.target===this)closeCatModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <span class="modal-head-title">Manage categories</span>
+      <button class="close-btn" onclick="closeCatModal()"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/></svg></button>
+    </div>
+    <div class="modal-body" id="cat-list"></div>
+    <div class="modal-foot">
+      <span class="add-cat-label">Add new category</span>
+      <div class="color-grid" id="swatch-grid"></div>
+      <div class="cat-add">
+        <input id="nc-name" type="text" placeholder="Category name..." onkeydown="if(event.key==='Enter')addCategory()">
+        <button class="btn btn-primary" onclick="addCategory()">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="./scripts/app.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
