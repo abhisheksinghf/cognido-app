@@ -16,7 +16,92 @@ const CONFIG = {
 };
 const CYCLE = {todo:'inprogress',inprogress:'review',review:'done',done:'blocked',blocked:'todo'};
 
+const THEME_KEY = 'cognido_theme';
+const THEMES = { LIGHT: 'light', DARK: 'dark' };
+let currentTheme = THEMES.DARK;
+let systemThemeWatcherApplied = false;
 
+try {
+  const storedTheme = typeof localStorage !== 'undefined' ? localStorage.getItem(THEME_KEY) : null;
+  if (storedTheme === THEMES.LIGHT || storedTheme === THEMES.DARK) {
+    currentTheme = storedTheme;
+  } else if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+    currentTheme = THEMES.LIGHT;
+  }
+} catch (err) {
+  if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+    currentTheme = THEMES.LIGHT;
+  }
+}
+if (typeof document !== 'undefined' && document.documentElement) {
+  document.documentElement.setAttribute('data-theme', currentTheme);
+}
+
+function updateThemeToggleUI(mode) {
+  const icon = document.getElementById('theme-icon');
+  const label = document.getElementById('theme-toggle-text');
+  const toggle = document.getElementById('theme-toggle');
+  if (icon) {
+    icon.innerHTML = mode === THEMES.LIGHT
+      ? '<circle cx="7" cy="7" r="3.2"></circle><line x1="7" y1="1" x2="7" y2="3"></line><line x1="7" y1="11" x2="7" y2="13"></line><line x1="1" y1="7" x2="3" y2="7"></line><line x1="11" y1="7" x2="13" y2="7"></line><line x1="2.6" y1="2.6" x2="4" y2="4"></line><line x1="10" y1="10" x2="11.4" y2="11.4"></line><line x1="10" y1="4" x2="11.4" y2="2.6"></line><line x1="2.6" y1="11.4" x2="4" y2="10"></line>'
+      : '<path d="M9.5 1.5a4.9 4.9 0 1 0 4 7.8 4.2 4.2 0 0 1-4-7.8z"></path>';
+  }
+  if (label) {
+    label.textContent = mode === THEMES.LIGHT ? '' : '';
+  }
+  if (toggle) {
+    toggle.setAttribute('aria-label', mode === THEMES.LIGHT ? 'Switch to dark mode' : 'Switch to light mode');
+  }
+}
+
+function applyTheme(mode) {
+  const desired = mode === THEMES.LIGHT ? THEMES.LIGHT : THEMES.DARK;
+  currentTheme = desired;
+  if (typeof document !== 'undefined' && document.documentElement) {
+    document.documentElement.setAttribute('data-theme', desired);
+  }
+  updateThemeToggleUI(desired);
+}
+
+function initTheme() {
+  applyTheme(currentTheme);
+  if (systemThemeWatcherApplied) { return; }
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    const media = window.matchMedia('(prefers-color-scheme: light)');
+    if (media.addEventListener) {
+      media.addEventListener('change', handleSystemThemeChange);
+    } else if (media.addListener) {
+      media.addListener(handleSystemThemeChange);
+    }
+    systemThemeWatcherApplied = true;
+  }
+}
+
+function handleSystemThemeChange(event) {
+  let stored = null;
+  try {
+    stored = typeof localStorage !== 'undefined' ? localStorage.getItem(THEME_KEY) : null;
+  } catch (err) {
+    stored = null;
+  }
+  if (stored === THEMES.LIGHT || stored === THEMES.DARK) {
+    return;
+  }
+  applyTheme(event.matches ? THEMES.LIGHT : THEMES.DARK);
+}
+
+function toggleTheme() {
+  const next = currentTheme === THEMES.LIGHT ? THEMES.DARK : THEMES.LIGHT;
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(THEME_KEY, next);
+    }
+  } catch (err) {
+    // ignore storage access errors
+  }
+  applyTheme(next);
+  toast('Theme: ' + (next === THEMES.LIGHT ? 'Light' : 'Dark'));
+}
 
 const QUOTES = [
   { line: 'Small steps make big stories.', author: 'Cognido' },
@@ -53,6 +138,7 @@ let saveTimer = null;
 
 // ── Init ───────────────────────────────────────────────────────────────────
 window.onload = function() {
+  initTheme();
   renderSwatches();
   startQuoteRotation();
   const authed = localStorage.getItem(CONFIG.authStorageKey) === 'yes';
@@ -479,6 +565,11 @@ document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openDrawer(null); }
   if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); syncNow(); }
 });
+
+
+
+
+
 
 
 
