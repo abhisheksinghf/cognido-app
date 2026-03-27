@@ -15,36 +15,46 @@ const CONFIG = {
   credentials: {username: 'cognido', password: 'task@123'}
 };
 const CYCLE = {todo:'inprogress',inprogress:'review',review:'done',done:'blocked',blocked:'todo'};
-const DEFAULT_TASKS = [
-  {id:0,task:'Checking the existing flow',remarks:'',catId:'c1',owner:'Both',effort:'2 days',date:'24-25 Mar',status:'done',pri:'med'},
-  {id:1,task:'Warehouse queue details collection — table, view and screen details',remarks:'',catId:'c4',owner:'Abhishek',effort:'1 day',date:'26-Mar',status:'done',pri:'high'},
-  {id:2,task:'Job creation — insert table details',remarks:'Job name: PROCESS_PREADVICE',catId:'c5',owner:'Hemanth',effort:'',date:'',status:'inprogress',pri:'high'},
-  {id:3,task:'Package creation for the auto job — spec and body',remarks:'Package: PMPKS_PROCESS_PREADVICE',catId:'c5',owner:'Both',effort:'.5 day',date:'26-Mar',status:'inprogress',pri:'high'},
-  {id:4,task:'Logic creation of batch job select query — preadvice indicator and postdays',remarks:'',catId:'c1',owner:'Hemanth',effort:'.5 day',date:'27-Mar',status:'todo',pri:'med'},
-  {id:5,task:'Threshold availability check logic for posting preadvice transaction',remarks:'',catId:'c1',owner:'Abhishek',effort:'1 day',date:'27-Mar',status:'todo',pri:'high'},
-  {id:6,task:'Logic to post transaction till account pending event for successfully checked contract',remarks:'',catId:'c1',owner:'Abhishek',effort:'1 day',date:'30-Mar',status:'todo',pri:'high'},
-  {id:7,task:'Testing to check for account posting on value date',remarks:'',catId:'c3',owner:'Hemanth',effort:'1 day',date:'30-Mar',status:'todo',pri:'med'},
-  {id:8,task:'Test a positive case on logic check — threshold amount success',remarks:'',catId:'c3',owner:'Hemanth',effort:'1 day',date:'31-Mar',status:'todo',pri:'med'},
-  {id:9,task:'Test a negative case on logic check — threshold amount failure',remarks:'',catId:'c3',owner:'Abhishek',effort:'1 day',date:'31-Mar',status:'todo',pri:'med'},
-  {id:10,task:'Sanity testing on auto job',remarks:'',catId:'c3',owner:'Both',effort:'3 days',date:'03-Apr',status:'todo',pri:'high'},
-];
-const DEFAULT_CATS = [
-  {id:'c1',name:'Pre-advice',color:'#7c6ff7'},
-  {id:'c2',name:'Environment',color:'#2dd4bf'},
-  {id:'c3',name:'Testing',color:'#4ade80'},
-  {id:'c4',name:'Database',color:'#60a5fa'},
-  {id:'c5',name:'Package / Job',color:'#fbbf24'},
-];
 
+
+
+const QUOTES = [
+  { line: 'Small steps make big stories.', author: 'Cognido' },
+  { line: 'Progress loves a checklist.', author: 'Cognido' },
+  { line: 'Do the thing today your future self will high-five.', author: 'Future You' },
+  { line: 'Focus beats frenzy every single time.', author: 'Momentum' },
+  { line: 'Tiny wins are still wins; log them.', author: 'Cognido' }
+];
+let quoteIndex = 0;
+let quoteTimer = null;
+
+function setQuote(idx) {
+  if (!QUOTES.length) { return; }
+  quoteIndex = ((idx % QUOTES.length) + QUOTES.length) % QUOTES.length;
+  const el = document.getElementById('quote-text');
+  if (!el) { return; }
+  const { line, author } = QUOTES[quoteIndex];
+  el.textContent = author ? `${line} - ${author}` : line;
+}
+
+function startQuoteRotation() {
+  if (!QUOTES.length) { return; }
+  if (quoteTimer) { clearInterval(quoteTimer); }
+  setQuote(Math.floor(Math.random() * QUOTES.length));
+  quoteTimer = setInterval(() => {
+    setQuote(quoteIndex + 1);
+  }, 10000);
+}
 // ── State ──────────────────────────────────────────────────────────────────
 let API_URL = CONFIG.apiUrl;
-let tasks = [], categories = [], nid = 11;
+let tasks = [], categories = [], nid = 1;
 let editId = null, currentView = 'all', newCatColor = COLORS[0];
 let saveTimer = null;
 
 // ── Init ───────────────────────────────────────────────────────────────────
 window.onload = function() {
   renderSwatches();
+  startQuoteRotation();
   const authed = localStorage.getItem(CONFIG.authStorageKey) === 'yes';
   if (authed) {
     API_URL = CONFIG.apiUrl;
@@ -79,18 +89,23 @@ function showApp() {
   ac.style.flex = '1';
 }
 
-// ── API ────────────────────────────────────────────────────────────────────
+function hideApp() {
+  const banner = document.getElementById('config-banner');
+  const ac = document.getElementById('app-content');
+  if (banner) { banner.style.display = 'block'; }
+  if (ac) { ac.style.display = 'none'; }
+}
+
 function api(body) {
   return fetch(API_URL, {
     method: 'POST',
     body: JSON.stringify(body),
     headers: {'Content-Type':'text/plain;charset=utf-8'}
   }).then(r => {
-    if (!r.ok) throw new Error('HTTP ' + r.status);
+    if (!r.ok) { throw new Error('HTTP ' + r.status); }
     return r.json();
   });
 }
-
 function connectSheet() {
   const userEl = document.getElementById('login-username');
   const passEl = document.getElementById('login-password');
@@ -103,7 +118,7 @@ function connectSheet() {
     return;
   }
   if (!CONFIG.apiUrl || CONFIG.apiUrl.includes('YOUR_DEPLOYMENT_ID')) {
-    toast('Configure CONFIG.apiUrl in cognido.js before logging in.');
+    toast('Configure CONFIG.apiUrl in app.js before logging in.');
     return;
   }
   API_URL = CONFIG.apiUrl;
@@ -126,19 +141,34 @@ function connectSheet() {
   });
 }
 
+function logout() {
+  localStorage.removeItem(CONFIG.authStorageKey);
+  API_URL = '';
+  hideApp();
+  setSyncState('setup', 'Not connected');
+  const userEl = document.getElementById('login-username');
+  const passEl = document.getElementById('login-password');
+  if (userEl) {
+    userEl.value = '';
+    userEl.focus();
+  }
+  if (passEl) { passEl.value = ''; }
+  toast('Logged out of Cognido. Door is ready when you are.');
+}
 function loadFromSheet() {
   setSyncState('loading', 'Loading...');
   api({action:'load'}).then(data => {
     if (data.error) { setSyncState('error', 'Load error'); toast('Error: ' + data.error); return; }
-    // First load: if sheet is empty, push defaults
+    // First load: start with a blank board
     if (!data.tasks || data.tasks.length === 0) {
-      tasks      = DEFAULT_TASKS;
-      categories = DEFAULT_CATS;
-      nid        = 11;
-      pushAll();
+      tasks      = [];
+      categories = [];
+      const nextId = data.meta && data.meta.nextId ? parseInt(data.meta.nextId, 10) : 1;
+      nid        = Number.isFinite(nextId) && nextId > 0 ? nextId : 1;
+      setSyncState('ok', 'Ready - no tasks yet');
     } else {
       tasks      = data.tasks.map(t => ({...t, id: parseInt(t.id)||0}));
-      categories = data.categories || DEFAULT_CATS;
+      categories = data.categories || [];
       nid        = (data.meta && data.meta.nextId) ? parseInt(data.meta.nextId) : (Math.max(...tasks.map(t=>t.id)) + 1);
       setSyncState('ok', 'Synced');
     }
@@ -162,6 +192,11 @@ function scheduleSave() {
 }
 
 function syncNow() {
+  if (!localStorage.getItem(CONFIG.authStorageKey)) {
+    wiggle(document.getElementById('config-banner'));
+    toast('Log in to sync your board.');
+    return;
+  }
   clearTimeout(saveTimer);
   pushAll();
   toast('Synced to Google Sheet');
@@ -196,14 +231,21 @@ function render() {
   renderCatNav();
   const q  = (document.getElementById('search')||{}).value?.toLowerCase() || '';
   const fc = (document.getElementById('f-cat')||{}).value || '';
-  const fo = (document.getElementById('f-owner')||{}).value || '';
+  const fo = ((document.getElementById('f-assigned')||{}).value || '').trim().toLowerCase();
   const fp = (document.getElementById('f-pri')||{}).value || '';
 
   let list = tasks.filter(t => {
     if (currentView !== 'all' && t.status !== currentView) return false;
     if (q  && !t.task.toLowerCase().includes(q) && !(t.remarks||'').toLowerCase().includes(q) && !(t.owner||'').toLowerCase().includes(q)) return false;
     if (fc && t.catId !== fc) return false;
-    if (fo && t.owner !== fo) return false;
+    if (fo) {
+      const ownerValue = (t.owner || '').toLowerCase();
+      if (fo === 'unassigned') {
+        if (ownerValue) { return false; }
+      } else if (!ownerValue.includes(fo)) {
+        return false;
+      }
+    }
     if (fp && t.pri   !== fp) return false;
     return true;
   });
@@ -216,8 +258,10 @@ function render() {
 
   tb.innerHTML = list.map(t => {
     const cat  = getCat(t.catId);
-    const oc   = OC[t.owner] || ['#3a3a4a','#aaa'];
-    const init = t.owner === 'Both' ? 'B' : (t.owner||'?').slice(0,2).toUpperCase();
+    const ownerName = (t.owner || "").trim();
+    const displayOwner = ownerName || "Unassigned";
+    const oc   = OC[ownerName] || ['#3a3a4a','#aaa'];
+    const init = ownerName ? ownerName.slice(0,2).toUpperCase() : '--';
     const priC = t.pri === 'high' ? '#f87171' : t.pri === 'low' ? '#94a3b8' : '#fbbf24';
     return `<tr>
       <td><span class="id-chip">${t.id}</span></td>
@@ -226,9 +270,9 @@ function render() {
         ${t.remarks ? `<div class="rmk-text">${t.remarks}</div>` : ''}
       </td>
       <td><span class="cat-badge" style="background:${cat.color}18;color:${cat.color};border:1px solid ${cat.color}30"><span style="width:5px;height:5px;border-radius:50%;background:${cat.color};display:inline-block;flex-shrink:0"></span>${cat.name}</span></td>
-      <td><span class="owner-chip"><span class="av" style="background:${oc[0]};color:${oc[1]}">${init}</span><span style="font-size:12px">${t.owner}</span></span></td>
-      <td style="font-size:12px;color:var(--text3);font-family:var(--mono)">${t.effort||'—'}</td>
-      <td style="font-size:12px;color:var(--text3);font-family:var(--mono)">${t.date||'—'}</td>
+      <td><span class="owner-chip"><span class="av" style="background:${oc[0]};color:${oc[1]}">${init}</span><span style="font-size:12px">${displayOwner}</span></span></td>
+      <td style="font-size:12px;color:var(--text3);font-family:var(--mono)">${t.effort || '--'}</td>
+      <td style="font-size:12px;color:var(--text3);font-family:var(--mono)">${t.date || '--'}</td>
       <td><span class="st-badge" style="${SS[t.status]||''}" onclick="cycleStatus(${t.id})" title="Click to cycle status">${SL[t.status]||t.status}</span></td>
       <td><span class="pri-dot" style="background:${priC}" title="${t.pri||'med'} priority"></span></td>
       <td><div class="act-row">
@@ -333,7 +377,7 @@ function openDrawer(id) {
     document.getElementById('f-task').value    = '';
     document.getElementById('f-remarks').value = '';
     document.getElementById('f-cat-d').value   = categories[0]?.id || '';
-    document.getElementById('f-owner-d').value = 'Both';
+    document.getElementById('f-assigned-d').value = '';
     document.getElementById('f-effort').value  = '';
     document.getElementById('f-date').value    = '';
     document.getElementById('f-status-d').value= 'todo';
@@ -344,7 +388,7 @@ function openDrawer(id) {
     document.getElementById('f-task').value    = t.task;
     document.getElementById('f-remarks').value = t.remarks || '';
     document.getElementById('f-cat-d').value   = t.catId;
-    document.getElementById('f-owner-d').value = t.owner;
+    document.getElementById('f-assigned-d').value = t.owner;
     document.getElementById('f-effort').value  = t.effort || '';
     document.getElementById('f-date').value    = t.date   || '';
     document.getElementById('f-status-d').value= t.status;
@@ -363,7 +407,7 @@ function saveTask() {
     task,
     remarks:  document.getElementById('f-remarks').value.trim(),
     catId:    document.getElementById('f-cat-d').value,
-    owner:    document.getElementById('f-owner-d').value,
+    owner:    document.getElementById('f-assigned-d').value.trim(),
     effort:   document.getElementById('f-effort').value.trim(),
     date:     document.getElementById('f-date').value.trim(),
     status:   document.getElementById('f-status-d').value,

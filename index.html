@@ -42,7 +42,7 @@
     <div class="nav-sec">Categories</div>
     <div class="cats-scroll" id="cat-nav"></div>
 
-    <div class="sidebar-foot">
+        <div class="sidebar-foot">
       <div class="sync-bar setup" id="sync-bar">
         <span class="sync-dot pulse"></span>
         <span id="sync-text">Not connected</span>
@@ -51,9 +51,9 @@
         <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><line x1="8" y1="5.5" x2="8" y2="10.5"/><line x1="5.5" y1="8" x2="10.5" y2="8"/></svg>
         Manage categories
       </button>
-      <div class="project-card">
-        <div class="project-card-title">PROCESS_PREADVICE</div>
-        <div class="project-card-meta">Code rel · 17-Apr-26<br>Buffer · 3 days · 08-Apr</div>
+      <div class="project-card quote-card">
+        <div class="project-card-title">Cognido Thoughts</div>
+        <div class="project-card-meta" id="quote-text">Small steps make big stories.</div>
       </div>
     </div>
   </div>
@@ -63,7 +63,7 @@
     <div class="topbar">
       <div>
         <div class="view-title" id="view-title">All tasks</div>
-        <div class="view-sub">Auto job · Future dated pre-advice transactions</div>
+        <div class="view-sub">Plan, track, and celebrate every win.</div>
       </div>
       <div class="topbar-right">
         <button class="btn btn-ghost" onclick="openCatModal()">
@@ -73,6 +73,10 @@
         <button class="btn btn-ghost" id="sync-btn" onclick="syncNow()">
           <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8A5 5 0 1 1 9 3.27"/><polyline points="9,1 9,4 12,4"/></svg>
           Sync
+        </button>
+        <button class="btn btn-ghost" id="logout-btn" onclick="logout()">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 2H2v10h3"/><path d="M9 10l3-3-3-3"/><path d="M12 7H5"/></svg>
+          Logout
         </button>
         <button class="btn btn-primary" onclick="openDrawer(null)" id="add-btn">
           <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
@@ -111,15 +115,10 @@
       <div class="toolbar">
         <div class="search-wrap">
           <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><line x1="9.5" y1="9.5" x2="13" y2="13"/></svg>
-          <input class="search-inp" id="search" type="text" placeholder="Search tasks, remarks, owners..." oninput="render()">
+          <input class="search-inp" id="search" type="text" placeholder="Search tasks, notes, people..." oninput="render()">
         </div>
         <select class="filter-sel" id="f-cat" onchange="render()"><option value="">All categories</option></select>
-        <select class="filter-sel" id="f-owner" onchange="render()">
-          <option value="">All owners</option>
-          <option>Abhishek</option>
-          <option>Hemanth</option>
-          <option>Both</option>
-        </select>
+        <input class="filter-inp" id="f-assigned" type="text" placeholder="Assigned to..." oninput="render()">
         <select class="filter-sel" id="f-pri" onchange="render()">
           <option value="">All priorities</option>
           <option value="high">High</option>
@@ -136,7 +135,7 @@
                 <th class="col-id">#</th>
                 <th class="col-task">Task</th>
                 <th class="col-cat">Category</th>
-                <th class="col-own">Owner</th>
+                <th class="col-own">Assigned</th>
                 <th class="col-eff">Effort</th>
                 <th class="col-dt">Timeline</th>
                 <th class="col-st">Status</th>
@@ -161,20 +160,16 @@
     </div>
     <div class="drawer-body">
       <div class="ff"><label>Task description *</label><textarea id="f-task" placeholder="Describe the work item clearly..."></textarea></div>
-      <div class="ff"><label>Remarks / notes</label><input id="f-remarks" type="text" placeholder="e.g. Job name -PROCESS_PREADVICE"></div>
+      <div class="ff"><label>Remarks / notes</label><input id="f-remarks" type="text" placeholder="Add any helpful context..."></div>
       <div class="ff-row">
         <div class="ff"><label>Category</label><select id="f-cat-d"></select></div>
-        <div class="ff"><label>Owner</label>
-          <select id="f-owner-d">
-            <option value="Both">Both</option>
-            <option value="Abhishek">Abhishek</option>
-            <option value="Hemanth">Hemanth</option>
-          </select>
+        <div class="ff"><label>Assigned to</label>
+          <input id="f-assigned-d" type="text" placeholder="Who owns this task?">
         </div>
       </div>
       <div class="ff-row">
         <div class="ff"><label>Effort</label><input id="f-effort" type="text" placeholder="e.g. 1 day"></div>
-        <div class="ff"><label>Timeline</label><input id="f-date" type="text" placeholder="e.g. 27-Mar"></div>
+        <div class="ff"><label>Timeline</label><input id="f-date" type="date"></div>
       </div>
       <div class="ff-row">
         <div class="ff"><label>Status</label>
@@ -193,8 +188,8 @@
             <option value="low">Low</option>
           </select>
         </div>
-      </div>
     </div>
+  </div>
     <div class="drawer-foot">
       <button class="btn btn-ghost" onclick="closeDrawer()">Cancel</button>
       <button class="btn btn-primary" id="save-btn" onclick="saveTask()">Save task</button>
@@ -226,6 +221,10 @@
 <script src="./scripts/app.js"></script>
 </body>
 </html>
+
+
+
+
 
 
 
