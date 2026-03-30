@@ -9,11 +9,7 @@ const SS = {
   done:     'background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)',
   blocked:  'background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)',
 };
-const CONFIG = {
-  apiUrl: 'https://script.google.com/macros/s/AKfycbyP93X33K2jCw0OwdAELZDTbBpKpGbJIlrU9xdC152TVIqxO66Bp9yt_Qjln6R7/exec',
-  authStorageKey: 'cognido_auth',
-  credentials: {username: 'cognido', password: 'task@123'}
-};
+const CONFIG = (typeof window !== 'undefined' && window.COGNIDO_CONFIG) ? window.COGNIDO_CONFIG : {};
 const CYCLE = {todo:'inprogress',inprogress:'review',review:'done',done:'blocked',blocked:'todo'};
 
 const THEME_KEY = 'cognido_theme';
@@ -141,7 +137,7 @@ window.onload = function() {
   initTheme();
   renderSwatches();
   startQuoteRotation();
-  const authed = localStorage.getItem(CONFIG.authStorageKey) === 'yes';
+  const authed = CONFIG.authStorageKey && localStorage.getItem(CONFIG.authStorageKey) === 'yes';
   if (authed) {
     API_URL = CONFIG.apiUrl;
     showApp();
@@ -197,14 +193,23 @@ function connectSheet() {
   const passEl = document.getElementById('login-password');
   const username = (userEl ? userEl.value : '').trim().toLowerCase();
   const password = passEl ? passEl.value : '';
-  if (username !== CONFIG.credentials.username || password !== CONFIG.credentials.password) {
+  const envCreds = CONFIG.credentials || {};
+  if (!CONFIG.apiUrl) {
+    toast('Set COGNIDO_API_URL in config/config.env before logging in.');
+    return;
+  }
+  if (!CONFIG.authStorageKey) {
+    toast('Set COGNIDO_AUTH_KEY in config/config.env before logging in.');
+    return;
+  }
+  if (!envCreds.username || !envCreds.password) {
+    toast('Set COGNIDO_USERNAME and COGNIDO_PASSWORD in config/config.env.');
+    return;
+  }
+  if ((envCreds.username || '').toLowerCase() !== username || envCreds.password !== password) {
     toast('Access denied. Check your Cognido credentials.');
     wiggle(document.getElementById('config-banner'));
     if (passEl) passEl.focus();
-    return;
-  }
-  if (!CONFIG.apiUrl || CONFIG.apiUrl.includes('YOUR_DEPLOYMENT_ID')) {
-    toast('Configure CONFIG.apiUrl in app.js before logging in.');
     return;
   }
   API_URL = CONFIG.apiUrl;
@@ -212,23 +217,27 @@ function connectSheet() {
   api({action:'ping'}).then(r => {
     const success = r && (r.ok === true || r.status === 'success' || r.result === 'ok' || r.message === 'pong' || !r.error);
     if (success) {
-      localStorage.setItem(CONFIG.authStorageKey, 'yes');
+      if (CONFIG.authStorageKey) {
+        localStorage.setItem(CONFIG.authStorageKey, 'yes');
+      }
       if (passEl) passEl.value = '';
       showApp();
       loadFromSheet();
       toast('Welcome back, Cognido captain!');
     } else {
       setSyncState('error', 'Connection failed');
-      toast('Could not reach the sheet. Double-check CONFIG.apiUrl.');
+      toast('Could not reach the sheet. Double-check COGNIDO_API_URL in config/config.env.');
     }
   }).catch(() => {
     setSyncState('error', 'Connection failed');
-    toast('Could not reach the sheet. Double-check CONFIG.apiUrl.');
+    toast('Could not reach the sheet. Double-check COGNIDO_API_URL in config/config.env.');
   });
 }
 
 function logout() {
-  localStorage.removeItem(CONFIG.authStorageKey);
+  if (CONFIG.authStorageKey) {
+    localStorage.removeItem(CONFIG.authStorageKey);
+  }
   API_URL = '';
   hideApp();
   setSyncState('setup', 'Not connected');
@@ -278,7 +287,7 @@ function scheduleSave() {
 }
 
 function syncNow() {
-  if (!localStorage.getItem(CONFIG.authStorageKey)) {
+  if (!CONFIG.authStorageKey || !localStorage.getItem(CONFIG.authStorageKey)) {
     wiggle(document.getElementById('config-banner'));
     toast('Log in to sync your board.');
     return;
@@ -565,38 +574,6 @@ document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openDrawer(null); }
   if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); syncNow(); }
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
