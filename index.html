@@ -17,32 +17,45 @@
       <img class="logo-img" src="./assets/logo.png" alt="Cognido logo">
     </div>
 
-    <div class="nav-sec">Views</div>
-    <button class="nav-item active" id="nav-all"        onclick="setView('all')">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="1.5" width="5" height="5" rx="1"/><rect x="9.5" y="1.5" width="5" height="5" rx="1"/><rect x="1.5" y="9.5" width="5" height="5" rx="1"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/></svg>
-      All tasks <span class="nav-count" id="nc-all">0</span>
+    <div class="nav-sec">Workspace</div>
+    <button class="nav-item active" id="nav-tasks-view" onclick="switchSection('tasks')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="1.5" width="13" height="13" rx="2"/><line x1="4.5" y1="5.5" x2="11.5" y2="5.5"/><line x1="4.5" y1="8" x2="11.5" y2="8"/><line x1="4.5" y1="10.5" x2="8" y2="10.5"/></svg>
+      Tasks
     </button>
-    <button class="nav-item" id="nav-inprogress"        onclick="setView('inprogress')">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
-      In progress <span class="nav-count" id="nc-inp">0</span>
-    </button>
-    <button class="nav-item" id="nav-review"            onclick="setView('review')">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M5.5 8h5M8 5.5v5"/></svg>
-      In review <span class="nav-count" id="nc-rev">0</span>
-    </button>
-    <button class="nav-item" id="nav-blocked"           onclick="setView('blocked')">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><line x1="5" y1="8" x2="11" y2="8"/></svg>
-      Blocked <span class="nav-count" id="nc-blk">0</span>
-    </button>
-    <button class="nav-item" id="nav-done"              onclick="setView('done')">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><polyline points="5.5,8 7.5,10 10.5,6"/></svg>
-      Done <span class="nav-count" id="nc-done">0</span>
+    <button class="nav-item" id="nav-meetings-view" onclick="switchSection('meetings')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="2.5"/><path d="M3 13c0-2.761 2.239-5 5-5s5 2.239 5 5"/><circle cx="13" cy="5" r="1.5"/><path d="M13 10c1.5.5 2.5 1.8 2.5 3"/></svg>
+      Meetings <span class="nav-count" id="nc-meetings">0</span>
     </button>
 
-    <div class="nav-sec">Categories</div>
-    <div class="cats-scroll" id="cat-nav"></div>
+    <!-- Task sub-views (only shown in tasks section) -->
+    <div id="task-subnav">
+      <div class="nav-sec">Views</div>
+      <button class="nav-item" id="nav-all" onclick="setView('all')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="1.5" width="5" height="5" rx="1"/><rect x="9.5" y="1.5" width="5" height="5" rx="1"/><rect x="1.5" y="9.5" width="5" height="5" rx="1"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/></svg>
+        All tasks <span class="nav-count" id="nc-all">0</span>
+      </button>
+      <button class="nav-item" id="nav-inprogress" onclick="setView('inprogress')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+        In progress <span class="nav-count" id="nc-inp">0</span>
+      </button>
+      <button class="nav-item" id="nav-review" onclick="setView('review')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M5.5 8h5M8 5.5v5"/></svg>
+        In review <span class="nav-count" id="nc-rev">0</span>
+      </button>
+      <button class="nav-item" id="nav-blocked" onclick="setView('blocked')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><line x1="5" y1="8" x2="11" y2="8"/></svg>
+        Blocked <span class="nav-count" id="nc-blk">0</span>
+      </button>
+      <button class="nav-item" id="nav-done" onclick="setView('done')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><polyline points="5.5,8 7.5,10 10.5,6"/></svg>
+        Done <span class="nav-count" id="nc-done">0</span>
+      </button>
 
-        <div class="sidebar-foot">
+      <div class="nav-sec">Categories</div>
+      <div class="cats-scroll" id="cat-nav"></div>
+    </div>
+
+    <div class="sidebar-foot">
       <div class="sync-bar setup" id="sync-bar">
         <span class="sync-dot pulse"></span>
         <span id="sync-text">Not connected</span>
@@ -63,10 +76,10 @@
     <div class="topbar">
       <div>
         <div class="view-title" id="view-title">All tasks</div>
-        <div class="view-sub">Plan, track, and celebrate every win.</div>
+        <div class="view-sub" id="view-sub">Plan, track, and celebrate every win.</div>
       </div>
       <div class="topbar-right">
-        <button class="btn btn-ghost" onclick="openCatModal()">
+        <button class="btn btn-ghost" onclick="openCatModal()" id="cat-btn">
           <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="4" cy="4" r="2"/><circle cx="10" cy="4" r="2"/><circle cx="4" cy="10" r="2"/><circle cx="10" cy="10" r="2"/></svg>
           Categories
         </button>
@@ -77,20 +90,16 @@
         <button class="btn btn-ghost btn-icon" id="theme-toggle" onclick="toggleTheme()" aria-label="Switch theme">
           <svg id="theme-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
             <circle cx="7" cy="7" r="3.2"></circle>
-            <line x1="7" y1="1" x2="7" y2="3"></line>
-            <line x1="7" y1="11" x2="7" y2="13"></line>
-            <line x1="1" y1="7" x2="3" y2="7"></line>
-            <line x1="11" y1="7" x2="13" y2="7"></line>
-            <line x1="2.6" y1="2.6" x2="4" y2="4"></line>
-            <line x1="10" y1="10" x2="11.4" y2="11.4"></line>
-            <line x1="10" y1="4" x2="11.4" y2="2.6"></line>
-            <line x1="2.6" y1="11.4" x2="4" y2="10"></line>
+            <line x1="7" y1="1" x2="7" y2="3"></line><line x1="7" y1="11" x2="7" y2="13"></line>
+            <line x1="1" y1="7" x2="3" y2="7"></line><line x1="11" y1="7" x2="13" y2="7"></line>
+            <line x1="2.6" y1="2.6" x2="4" y2="4"></line><line x1="10" y1="10" x2="11.4" y2="11.4"></line>
+            <line x1="10" y1="4" x2="11.4" y2="2.6"></line><line x1="2.6" y1="11.4" x2="4" y2="10"></line>
           </svg>
           <span id="theme-toggle-text" class="sr-only">Light mode</span>
         </button>
-        <button class="btn btn-primary" onclick="openDrawer(null)" id="add-btn">
+        <button class="btn btn-primary" id="add-btn" onclick="handleAddBtn()">
           <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
-          Add task
+          <span id="add-btn-label">Add task</span>
         </button>
         <button class="btn btn-ghost" id="logout-btn" onclick="logout()">
           <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 2H2v10h3"/><path d="M9 10l3-3-3-3"/><path d="M12 7H5"/></svg>
@@ -98,7 +107,7 @@
       </div>
     </div>
 
-    <!-- Login gate shown before authentication -->
+    <!-- Login gate -->
     <div class="config-banner" id="config-banner">
       <h2>Connect your Cognido board</h2>
       <p>Enter the Cognido username and password to unlock your task hub. We will remember this device for next time.</p>
@@ -111,7 +120,8 @@
         </button>
       </div>
     </div>
-        <!-- App content (hidden until connected) -->
+
+    <!-- ── TASKS SECTION ── -->
     <div id="app-content" style="display:none;flex:1;flex-direction:column;overflow:hidden">
       <div class="stats-row">
         <div class="stat"><div class="stat-num blue" id="s-total">0</div><div class="stat-lbl">Total tasks</div><div class="stat-bar"><div class="stat-bar-fill" style="background:var(--blue);width:100%" id="sb-total"></div></div></div>
@@ -125,12 +135,22 @@
         <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
       </div>
 
+      <!-- Advanced filter bar -->
       <div class="toolbar">
         <div class="search-wrap">
           <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><line x1="9.5" y1="9.5" x2="13" y2="13"/></svg>
           <input class="search-inp" id="search" type="text" placeholder="Search tasks, notes, people..." oninput="render()">
         </div>
         <select class="filter-sel" id="f-cat" onchange="render()"><option value="">All categories</option></select>
+        <select class="filter-sel" id="f-status-filter" onchange="render()">
+          <option value="">All statuses</option>
+          <option value="todo">To do</option>
+          <option value="inprogress">In progress</option>
+          <option value="review">In review</option>
+          <option value="done">Done</option>
+          <option value="blocked">Blocked</option>
+          <option value="not-done">Not completed</option>
+        </select>
         <input class="filter-inp" id="f-assigned" type="text" placeholder="Assigned to..." oninput="render()">
         <select class="filter-sel" id="f-pri" onchange="render()">
           <option value="">All priorities</option>
@@ -138,7 +158,20 @@
           <option value="med">Medium</option>
           <option value="low">Low</option>
         </select>
+        <select class="filter-sel" id="f-date-range" onchange="render()">
+          <option value="">Any date</option>
+          <option value="overdue">Overdue</option>
+          <option value="today">Due today</option>
+          <option value="this-week">This week</option>
+          <option value="no-date">No date set</option>
+        </select>
+        <button class="btn btn-ghost filter-clear-btn" id="clear-filters-btn" onclick="clearFilters()" title="Clear all filters">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/></svg>
+          Clear
+        </button>
       </div>
+
+      <div class="active-filters" id="active-filters"></div>
 
       <div class="table-container">
         <div class="table-wrap">
@@ -161,10 +194,59 @@
         </div>
       </div>
     </div>
+
+    <!-- ── MEETINGS SECTION ── -->
+    <div id="meetings-content" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+
+      <!-- Meeting stats -->
+      <div class="stats-row">
+        <div class="stat"><div class="stat-num blue" id="ms-total">0</div><div class="stat-lbl">Total meetings</div><div class="stat-bar"><div class="stat-bar-fill" style="background:var(--blue);width:100%"></div></div></div>
+        <div class="stat"><div class="stat-num green" id="ms-action">0</div><div class="stat-lbl">Action items</div><div class="stat-bar"><div class="stat-bar-fill" style="background:var(--green);width:0%" id="msb-action"></div></div></div>
+        <div class="stat"><div class="stat-num amber" id="ms-decisions">0</div><div class="stat-lbl">Decisions</div><div class="stat-bar"><div class="stat-bar-fill" style="background:var(--amber);width:0%" id="msb-dec"></div></div></div>
+        <div class="stat"><div class="stat-num purple" id="ms-open">0</div><div class="stat-lbl">Open items</div><div class="stat-bar"><div class="stat-bar-fill" style="background:var(--purple);width:0%" id="msb-open"></div></div></div>
+      </div>
+
+      <!-- Meeting toolbar -->
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><line x1="9.5" y1="9.5" x2="13" y2="13"/></svg>
+          <input class="search-inp" id="m-search" type="text" placeholder="Search meetings, points, people..." oninput="renderMeetings()">
+        </div>
+        <select class="filter-sel" id="m-f-type" onchange="renderMeetings()">
+          <option value="">All types</option>
+          <option value="standup">Standup</option>
+          <option value="planning">Planning</option>
+          <option value="review">Review</option>
+          <option value="retro">Retrospective</option>
+          <option value="client">Client call</option>
+          <option value="other">Other</option>
+        </select>
+        <select class="filter-sel" id="m-f-status" onchange="renderMeetings()">
+          <option value="">All statuses</option>
+          <option value="open">Has open items</option>
+          <option value="closed">All closed</option>
+        </select>
+        <select class="filter-sel" id="m-f-date" onchange="renderMeetings()">
+          <option value="">Any date</option>
+          <option value="today">Today</option>
+          <option value="this-week">This week</option>
+          <option value="this-month">This month</option>
+        </select>
+      </div>
+
+      <!-- Meeting cards grid -->
+      <div class="meetings-container" id="meetings-container">
+        <div class="empty-state" id="meetings-empty" style="display:none">
+          <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="20" cy="20" r="16"/><line x1="13" y1="20" x2="27" y2="20"/></svg>
+          <p>No meetings yet. Add your first one above.</p>
+        </div>
+        <div id="meetings-list" class="meetings-list"></div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- Task Drawer -->
+<!-- ── Task Drawer ── -->
 <div class="overlay" id="task-overlay" onclick="if(event.target===this)closeDrawer()">
   <div class="drawer" onclick="event.stopPropagation()">
     <div class="drawer-head">
@@ -176,9 +258,7 @@
       <div class="ff"><label>Remarks / notes</label><input id="f-remarks" type="text" placeholder="Add any helpful context..."></div>
       <div class="ff-row">
         <div class="ff"><label>Category</label><select id="f-cat-d"></select></div>
-        <div class="ff"><label>Assigned to</label>
-          <input id="f-assigned-d" type="text" placeholder="Who owns this task?">
-        </div>
+        <div class="ff"><label>Assigned to</label><input id="f-assigned-d" type="text" placeholder="Who owns this task?"></div>
       </div>
       <div class="ff-row">
         <div class="ff"><label>Effort</label><input id="f-effort" type="text" placeholder="e.g. 1 day"></div>
@@ -201,8 +281,8 @@
             <option value="low">Low</option>
           </select>
         </div>
+      </div>
     </div>
-  </div>
     <div class="drawer-foot">
       <button class="btn btn-ghost" onclick="closeDrawer()">Cancel</button>
       <button class="btn btn-primary" id="save-btn" onclick="saveTask()">Save task</button>
@@ -210,7 +290,66 @@
   </div>
 </div>
 
-<!-- Category Modal -->
+<!-- ── Meeting Drawer ── -->
+<div class="overlay" id="meeting-overlay" onclick="if(event.target===this)closeMeetingDrawer()">
+  <div class="drawer drawer-wide" onclick="event.stopPropagation()">
+    <div class="drawer-head">
+      <span class="drawer-title" id="meeting-drawer-title">Add meeting</span>
+      <button class="close-btn" onclick="closeMeetingDrawer()"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/></svg></button>
+    </div>
+    <div class="drawer-body">
+      <div class="ff-row">
+        <div class="ff"><label>Meeting title *</label><input id="m-title" type="text" placeholder="e.g. Sprint planning Q2"></div>
+        <div class="ff"><label>Date *</label><input id="m-date" type="date"></div>
+      </div>
+      <div class="ff-row">
+        <div class="ff"><label>Type</label>
+          <select id="m-type">
+            <option value="standup">Standup</option>
+            <option value="planning">Planning</option>
+            <option value="review">Review</option>
+            <option value="retro">Retrospective</option>
+            <option value="client">Client call</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="ff"><label>Attendees</label><input id="m-attendees" type="text" placeholder="e.g. Abhishek, Hemanth"></div>
+      </div>
+      <div class="ff"><label>Agenda / context</label><textarea id="m-agenda" placeholder="What is this meeting about?"></textarea></div>
+
+      <div class="meeting-points-section">
+        <div class="meeting-points-header">
+          <span class="meeting-points-title">Meeting points</span>
+          <button class="btn btn-ghost btn-sm" onclick="addMeetingPoint()">+ Add point</button>
+        </div>
+        <div id="m-points-list" class="m-points-list"></div>
+      </div>
+    </div>
+    <div class="drawer-foot">
+      <button class="btn btn-ghost" onclick="closeMeetingDrawer()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMeeting()">Save meeting</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Meeting Detail Modal ── -->
+<div class="modal-overlay" id="meeting-detail-overlay" onclick="if(event.target===this)closeMeetingDetail()">
+  <div class="modal modal-lg" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div>
+        <span class="modal-head-title" id="md-title">Meeting title</span>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px;font-family:var(--mono)" id="md-meta"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-ghost btn-sm" onclick="editMeeting(currentMeetingId)">Edit</button>
+        <button class="close-btn" onclick="closeMeetingDetail()"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/></svg></button>
+      </div>
+    </div>
+    <div class="modal-body" id="md-body" style="max-height:70vh;padding:20px 24px"></div>
+  </div>
+</div>
+
+<!-- ── Category Modal ── -->
 <div class="modal-overlay" id="cat-overlay" onclick="if(event.target===this)closeCatModal()">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-head">
@@ -235,38 +374,3 @@
 <script src="./scripts/app.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
