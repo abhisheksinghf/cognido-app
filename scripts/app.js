@@ -16,6 +16,8 @@ const CONFIG = (typeof window !== 'undefined' && window.COGNIDO_CONFIG) ? window
 const CYCLE = {todo:'inprogress',inprogress:'review',review:'done',done:'blocked',blocked:'todo'};
 const THEME_KEY = 'cognido_theme';
 const THEMES = { LIGHT: 'light', DARK: 'dark' };
+const TASK_ID_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const TASK_ID_LENGTH = 5;
 let currentTheme = THEMES.DARK;
 let systemThemeWatcherApplied = false;
 
@@ -102,6 +104,26 @@ let editId = null, editMeetingId = null, currentView = 'all', currentSection = '
 let newCatColor = COLORS[0], saveTimer = null;
 let currentMeetingId = null;
 let draftPoints = [];
+
+function normalizeTaskId(id) {
+  return id === undefined || id === null ? '' : String(id).trim().toUpperCase();
+}
+
+function generateTaskId(externalSet) {
+  const used = externalSet instanceof Set ? externalSet : new Set((tasks || []).map(t => normalizeTaskId(t.id)).filter(Boolean));
+  for (let attempt = 0; attempt < 1000; attempt++) {
+    let candidate = '';
+    for (let i = 0; i < TASK_ID_LENGTH; i++) {
+      candidate += TASK_ID_CHARS.charAt(Math.floor(Math.random() * TASK_ID_CHARS.length));
+    }
+    if (!used.has(candidate)) {
+      if (!(externalSet instanceof Set)) used.add(candidate);
+      return candidate;
+    }
+  }
+  throw new Error('Unable to generate unique task id');
+}
+
 
 // ── Init ───────────────────────────────────────────────────────────────────
 window.onload = function() {
@@ -240,20 +262,36 @@ function loadFromSheet() {
       nmid = (data.meta && data.meta.nextMid) ? parseInt(data.meta.nextMid) : 1;
       setSyncState('ok', 'Ready — no tasks yet');
     } else {
-      tasks      = data.tasks.map(t => ({...t, id: parseInt(t.id)||0}));
+      const idSet = new Set();
+      let patchedIds = false;
+      tasks = (data.tasks || []).map(t => {
+        let normalized = normalizeTaskId(t.id);
+        if (!normalized || idSet.has(normalized)) {
+          normalized = generateTaskId(idSet);
+          patchedIds = true;
+        }
+        idSet.add(normalized);
+        return {...t, id: normalized};
+      });
       categories = data.categories || [];
       meetings   = (data.meetings || []).map(m => ({
         ...m,
         id: parseInt(m.id)||0,
         points: m.points ? (typeof m.points === 'string' ? JSON.parse(m.points) : m.points) : []
       }));
-      nid  = (data.meta && data.meta.nextId)  ? parseInt(data.meta.nextId)  : (Math.max(0,...tasks.map(t=>t.id)) + 1);
+      nid  = (data.meta && data.meta.nextId) ? parseInt(data.meta.nextId) : 1;
       nmid = (data.meta && data.meta.nextMid) ? parseInt(data.meta.nextMid) : (Math.max(0,...meetings.map(m=>m.id)) + 1);
       setSyncState('ok', 'Synced');
+      if (patchedIds) scheduleSave();
     }
     render();
     updateMeetingNav();
-  }).catch(() => { setSyncState('error', 'Network error'); });
+  }).catch(err => {
+    console.error('loadFromSheet failed', err);
+    const msg = err && err.message ? err.message : 'Network error';
+    setSyncState('error', 'Network error');
+    toast(msg);
+  });
 }
 
 function pushAll() {
@@ -410,13 +448,16 @@ function render() {
     return;
   }
 
-  tb.innerHTML = list.map(t => {
+  tb.innerHTML = list.map((t, idx) => {
     const cat  = getCat(t.catId);
     const ownerName   = (t.owner || '').trim();
     const displayOwner = ownerName || 'Unassigned';
     const oc   = OC[ownerName] || ['#3a3a4a','#aaa'];
     const init = ownerName ? ownerName.slice(0,2).toUpperCase() : '--';
     const priC = t.pri === 'high' ? '#f87171' : t.pri === 'low' ? '#94a3b8' : '#fbbf24';
+    const taskId = normalizeTaskId(t.id);
+    const handlerId = (taskId || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const idLiteral = `'${handlerId}'`;
     let dateDisplay = '--';
     if (t.date) {
       const d = new Date(t.date);
@@ -429,7 +470,7 @@ function render() {
       }
     }
     return `<tr>
-      <td><span class="id-chip">${t.id}</span></td>
+      <td><span class="id-chip" title="${taskId}">${idx + 1}</span></td>
       <td>
         <div class="task-text ${t.status==='done'?'task-done':''}">${t.task}</div>
         ${t.remarks ? `<div class="rmk-text">${t.remarks}</div>` : ''}
@@ -438,13 +479,13 @@ function render() {
       <td><span class="owner-chip"><span class="av" style="background:${oc[0]};color:${oc[1]}">${init}</span><span style="font-size:12px">${displayOwner}</span></span></td>
       <td style="font-size:12px;color:var(--text3);font-family:var(--mono)">${t.effort||'--'}</td>
       <td style="font-size:12px;color:var(--text3);font-family:var(--mono)">${dateDisplay}</td>
-      <td><span class="st-badge" style="${SS[t.status]||''}" onclick="cycleStatus(${t.id})" title="Click to cycle status">${SL[t.status]||t.status}</span></td>
+      <td><span class="st-badge" style="${SS[t.status]||''}" onclick="cycleStatus(${idLiteral})" title="Click to cycle status">${SL[t.status]||t.status}</span></td>
       <td><span class="pri-dot" style="background:${priC}" title="${t.pri||'med'} priority"></span></td>
       <td><div class="act-row">
-        <button class="icon-btn edit" onclick="openDrawer(${t.id})" title="Edit">
+        <button class="icon-btn edit" onclick="openDrawer(${idLiteral})" title="Edit">
           <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.5 2.5l2 2-7 7H2.5v-2l7-7z"/></svg>
         </button>
-        <button class="icon-btn del" onclick="delTask(${t.id})" title="Delete">
+        <button class="icon-btn del" onclick="delTask(${idLiteral})" title="Delete">
           <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/></svg>
         </button>
       </div></td>
@@ -510,19 +551,21 @@ function renderDrawerCats() {
 
 // ── Task CRUD ──────────────────────────────────────────────────────────────
 function cycleStatus(id) {
-  const t = tasks.find(x => x.id === id); if (!t) return;
+  const targetId = String(id);
+  const t = tasks.find(x => x.id === targetId); if (!t) return;
   t.status = CYCLE[t.status] || 'todo';
   render(); scheduleSave(); toast('Status → ' + SL[t.status]);
 }
 
 function delTask(id) {
   if (!confirm('Delete this task?')) return;
-  tasks = tasks.filter(x => x.id !== id);
+  const targetId = String(id);
+  tasks = tasks.filter(x => x.id !== targetId);
   render(); scheduleSave(); toast('Task deleted');
 }
 
 function openDrawer(id) {
-  editId = id;
+  editId = (id === null ? null : String(id));
   renderDrawerCats();
   if (id === null) {
     document.getElementById('drawer-title').textContent = 'Add task';
@@ -565,10 +608,12 @@ function saveTask() {
     pri: document.getElementById('f-pri-d').value,
   };
   if (editId !== null) {
-    const t = tasks.find(x => x.id === editId); if (t) Object.assign(t, data);
+    const targetId = String(editId);
+    const t = tasks.find(x => x.id === targetId); if (t) Object.assign(t, data);
     toast('Task updated');
   } else {
-    tasks.push({id: nid++, ...data}); toast('Task added');
+    const newId = generateTaskId();
+    tasks.push({id: newId, ...data}); toast('Task added');
   }
   closeDrawer(); render(); scheduleSave();
 }
